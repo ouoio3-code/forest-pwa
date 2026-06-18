@@ -12,182 +12,103 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>산림 전자야장</title>
 <style>
-  :root {
-    --green-dark: #1a5c38;
-    --green-mid: #2d8653;
-    --green-light: #e8f4ed;
-    --green-accent: #3aaa6e;
-    --brown: #5c3d1a;
-    --text: #1a1a1a;
-    --text-sub: #5a5a5a;
-    --border: #d0d0d0;
-    --bg: #f5f7f5;
-    --white: #ffffff;
-    --danger: #c0392b;
-    --shadow: 0 1px 4px rgba(0,0,0,0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; font-family: -apple-system, 'Pretendard', 'Apple SD Gothic Neo', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; }
+:root{
+  --gd:#1a5c38;--gm:#2d8653;--gl:#e8f4ed;--ga:#3aaa6e;
+  --tx:#1a1a1a;--ts:#5a5a5a;--bd:#d0d0d0;--bg:#f5f7f5;--wh:#fff;
+  --rd:#c0392b;--sh:0 1px 4px rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:-apple-system,'Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--tx);font-size:15px}
 
-  /* 헤더 */
-  header {
-    background: var(--green-dark);
-    color: white;
-    padding: 14px 16px 12px;
-    position: sticky; top: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  }
-  header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
-  header .sub { font-size: 11px; opacity: 0.75; margin-top: 2px; }
-  .save-btn-top {
-    background: rgba(255,255,255,0.18);
-    border: 1px solid rgba(255,255,255,0.35);
-    color: white; border-radius: 8px;
-    padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer;
-  }
-  .save-btn-top:active { background: rgba(255,255,255,0.28); }
+header{background:var(--gd);color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+header h1{font-size:17px;font-weight:600;letter-spacing:-.3px}
+header .sub{font-size:11px;opacity:.75;margin-top:2px}
+.hbtn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:500;cursor:pointer}
+.hbtn:active{background:rgba(255,255,255,.28)}
 
-  /* 탭 */
-  .tabs {
-    display: flex; background: var(--white);
-    border-bottom: 1px solid var(--border);
-    position: sticky; top: 58px; z-index: 99;
-  }
-  .tab {
-    flex: 1; padding: 11px 4px; font-size: 13px; font-weight: 500;
-    text-align: center; cursor: pointer; color: var(--text-sub);
-    border-bottom: 2px solid transparent; transition: all 0.15s;
-  }
-  .tab.active { color: var(--green-dark); border-bottom-color: var(--green-dark); }
+.tabs{display:flex;background:var(--wh);border-bottom:1px solid var(--bd);position:sticky;top:58px;z-index:99;overflow-x:auto}
+.tab{flex:0 0 auto;padding:11px 12px;font-size:12px;font-weight:500;text-align:center;cursor:pointer;color:var(--ts);border-bottom:2px solid transparent;white-space:nowrap}
+.tab.active{color:var(--gd);border-bottom-color:var(--gd)}
 
-  /* 섹션 공통 */
-  .page { display: none; padding: 14px 14px 100px; }
-  .page.active { display: block; }
-  .card {
-    background: var(--white); border-radius: 12px;
-    border: 1px solid var(--border); margin-bottom: 12px;
-    overflow: hidden; box-shadow: var(--shadow);
-  }
-  .card-head {
-    background: var(--green-light); padding: 10px 14px;
-    font-size: 13px; font-weight: 600; color: var(--green-dark);
-    display: flex; align-items: center; gap: 6px;
-    border-bottom: 1px solid #c8e0d0;
-  }
-  .card-body { padding: 14px; }
+.page{display:none;padding:14px 14px 100px}
+.page.active{display:block}
 
-  /* 입력 필드 */
-  .field { margin-bottom: 13px; }
-  .field:last-child { margin-bottom: 0; }
-  .field label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 5px; font-weight: 500; }
-  .field input, .field select {
-    width: 100%; height: 42px; border: 1px solid var(--border);
-    border-radius: 8px; padding: 0 12px; font-size: 15px;
-    color: var(--text); background: var(--white);
-    -webkit-appearance: none; appearance: none;
-  }
-  .field input:focus, .field select:focus {
-    outline: none; border-color: var(--green-mid);
-    box-shadow: 0 0 0 3px rgba(45,134,83,0.12);
-  }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.card{background:var(--wh);border-radius:12px;border:1px solid var(--bd);margin-bottom:12px;overflow:hidden;box-shadow:var(--sh)}
+.ch{background:var(--gl);padding:10px 14px;font-size:13px;font-weight:600;color:var(--gd);display:flex;align-items:center;gap:6px;border-bottom:1px solid #c8e0d0}
+.cb{padding:14px}
 
-  /* GPS */
-  .gps-wrap { display: grid; grid-template-columns: 1fr 1fr 44px; gap: 8px; align-items: end; }
-  .gps-trigger {
-    height: 42px; width: 44px; border: 1px solid var(--green-mid);
-    border-radius: 8px; background: var(--green-light);
-    color: var(--green-dark); cursor: pointer; font-size: 20px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .gps-trigger:active { background: #c5dfc9; }
-  .gps-note {
-    font-size: 11px; color: var(--text-sub); margin-top: 5px;
-    padding: 6px 10px; background: var(--green-light);
-    border-radius: 6px; line-height: 1.5;
-  }
+.field{margin-bottom:13px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:12px;color:var(--ts);margin-bottom:5px;font-weight:500}
+.field input,.field select{width:100%;height:42px;border:1px solid var(--bd);border-radius:8px;padding:0 12px;font-size:15px;color:var(--tx);background:var(--wh);-webkit-appearance:none}
+.field input:focus,.field select:focus{outline:none;border-color:var(--gm);box-shadow:0 0 0 3px rgba(45,134,83,.12)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-  /* 표시목 */
-  .mark-block {
-    border: 1px solid var(--border); border-radius: 8px;
-    padding: 12px; margin-bottom: 10px; background: #fafafa;
-  }
-  .mark-block:last-child { margin-bottom: 0; }
-  .mark-num {
-    font-size: 12px; font-weight: 600; color: var(--green-dark);
-    margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
-  }
-  .mark-num::before {
-    content: attr(data-n);
-    width: 20px; height: 20px; background: var(--green-dark);
-    color: white; border-radius: 50%; font-size: 11px;
-    display: flex; align-items: center; justify-content: center;
-  }
+.gps-wrap{display:grid;grid-template-columns:1fr 1fr 44px;gap:8px;align-items:end}
+.gps-btn{height:42px;width:44px;border:1px solid var(--gm);border-radius:8px;background:var(--gl);color:var(--gd);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center}
+.gps-btn:active{background:#c5dfc9}
+.gps-note{font-size:11px;color:var(--ts);margin-top:5px;padding:6px 10px;background:var(--gl);border-radius:6px;line-height:1.5}
 
-  /* 수목 테이블 */
-  .tree-toolbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 14px; border-bottom: 1px solid var(--border);
-  }
-  .tree-count { font-size: 12px; color: var(--text-sub); }
-  .add-row-btn {
-    height: 32px; padding: 0 14px; background: var(--green-dark);
-    color: white; border: none; border-radius: 7px;
-    font-size: 13px; font-weight: 500; cursor: pointer;
-    display: flex; align-items: center; gap: 4px;
-  }
-  .add-row-btn:active { background: var(--green-mid); }
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { width: 100%; border-collapse: collapse; min-width: 340px; }
-  thead th {
-    background: var(--green-light); color: var(--green-dark);
-    font-size: 12px; font-weight: 600; padding: 9px 6px;
-    text-align: center; white-space: nowrap;
-    border-bottom: 1px solid #c8e0d0; position: sticky; top: 0;
-  }
-  tbody tr:nth-child(even) { background: #fafafa; }
-  tbody td {
-    padding: 4px 3px; border-bottom: 1px solid #efefef;
-    text-align: center; vertical-align: middle;
-  }
-  tbody td input, tbody td select {
-    width: 100%; height: 34px; border: 1px solid #e0e0e0;
-    border-radius: 6px; padding: 0 5px; font-size: 13px;
-    color: var(--text); background: var(--white);
-    -webkit-appearance: none; text-align: center;
-  }
-  tbody td input:focus, tbody td select:focus {
-    outline: none; border-color: var(--green-mid);
-  }
-  .no-cell { font-size: 11px; color: #bbb; width: 26px; }
-  .del-cell { width: 30px; }
-  .del-btn {
-    width: 26px; height: 26px; border: none; background: none;
-    color: #ccc; font-size: 16px; cursor: pointer; border-radius: 4px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .del-btn:active { background: #fee; color: var(--danger); }
+.mark-block{border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;background:#fafafa}
+.mark-block:last-child{margin-bottom:0}
+.mark-num{font-size:12px;font-weight:600;color:var(--gd);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.mark-num::before{content:attr(data-n);width:20px;height:20px;background:var(--gd);color:#fff;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center}
 
-  /* 내보내기 버튼 */
-  .export-area { padding: 14px; }
-  .export-btn {
-    width: 100%; height: 50px; background: var(--green-dark);
-    color: white; border: none; border-radius: 12px;
-    font-size: 16px; font-weight: 600; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    box-shadow: 0 3px 10px rgba(26,92,56,0.3);
-  }
-  .export-btn:active { background: var(--green-mid); transform: scale(0.98); }
-  .export-note { font-size: 12px; color: var(--text-sub); text-align: center; margin-top: 8px; }
+/* 수목조사 테이블 */
+.tree-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--bd)}
+.tree-count{font-size:12px;color:var(--ts)}
+.add-btn{height:32px;padding:0 14px;background:var(--gd);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer}
+.add-btn:active{background:var(--gm)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:320px}
+thead th{background:var(--gl);color:var(--gd);font-size:12px;font-weight:600;padding:9px 4px;text-align:center;white-space:nowrap;border-bottom:1px solid #c8e0d0}
+tbody tr:nth-child(even){background:#fafafa}
+tbody td{padding:3px 2px;border-bottom:1px solid #efefef;text-align:center;vertical-align:middle}
+tbody td select,tbody td input[type=number]{width:100%;height:34px;border:1px solid #e0e0e0;border-radius:6px;padding:0 4px;font-size:13px;color:var(--tx);background:var(--wh);-webkit-appearance:none;text-align:center}
+tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-color:var(--gm)}
+.no-c{font-size:11px;color:#bbb;width:24px}
+.del-c{width:28px}
+.del-btn{width:26px;height:26px;border:none;background:none;color:#ccc;font-size:15px;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.del-btn:active{background:#fee;color:var(--rd)}
 
-  /* 토스트 */
-  .toast {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
-    background: #222; color: white; padding: 10px 20px; border-radius: 24px;
-    font-size: 13px; opacity: 0; transition: all 0.25s; z-index: 999; white-space: nowrap;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* 내보내기 */
+.exp-area{padding:14px}
+.exp-btn{width:100%;height:50px;background:var(--gd);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 3px 10px rgba(26,92,56,.3)}
+.exp-btn:active{background:var(--gm);transform:scale(.98)}
+.exp-note{font-size:12px;color:var(--ts);text-align:center;margin-top:8px}
+
+/* 재적비교 탭 */
+.cmp-section{margin-bottom:16px}
+.cmp-title{font-size:13px;font-weight:700;color:var(--gd);margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--gl)}
+
+.cmp-table-wrap{overflow-x:auto}
+.cmp-table{width:100%;border-collapse:collapse;min-width:300px;font-size:13px}
+.cmp-table th{background:var(--gl);color:var(--gd);font-size:12px;font-weight:600;padding:8px 4px;text-align:center;border-bottom:1px solid #c8e0d0}
+.cmp-table td{padding:3px 2px;border-bottom:1px solid #efefef;text-align:center}
+.cmp-table td select,.cmp-table td input{width:100%;height:32px;border:1px solid #e0e0e0;border-radius:5px;padding:0 3px;font-size:12px;color:var(--tx);background:var(--wh);-webkit-appearance:none;text-align:center}
+
+.result-box{background:var(--gl);border:1px solid #c8e0d0;border-radius:10px;padding:16px;margin-top:12px}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #c8e0d0;font-size:14px}
+.result-row:last-child{border:none}
+.result-label{color:var(--ts);font-size:13px}
+.result-val{font-weight:700;color:var(--gd);font-size:15px}
+.result-val.up{color:#27ae60}
+.result-val.dn{color:var(--rd)}
+
+.calc-btn{width:100%;height:46px;background:var(--gm);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+.calc-btn:active{background:var(--gd)}
+
+.diff-badge{display:inline-block;padding:3px 8px;border-radius:12px;font-size:12px;font-weight:600}
+.diff-up{background:#d4edda;color:#155724}
+.diff-dn{background:#f8d7da;color:#721c24}
+.diff-eq{background:#e2e3e5;color:#383d41}
+
+/* 토스트 */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:#222;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;opacity:0;transition:all .25s;z-index:999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* 설명 텍스트 */
+.info-box{background:#fffde7;border:1px solid #f9e9a0;border-radius:8px;padding:10px 12px;font-size:12px;color:#5a4a00;line-height:1.6;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -197,86 +118,66 @@
     <h1>🌲 산림 전자야장</h1>
     <div class="sub">표준지 현장 조사 기록</div>
   </div>
-  <button class="save-btn-top" onclick="exportCSV()">CSV 저장</button>
+  <button class="hbtn" onclick="exportCSV()">CSV 저장</button>
 </header>
 
 <div class="tabs">
   <div class="tab active" onclick="switchTab(0)">📋 기본정보</div>
   <div class="tab" onclick="switchTab(1)">🚩 표시목</div>
   <div class="tab" onclick="switchTab(2)">🌳 수목조사</div>
+  <div class="tab" onclick="switchTab(3)">📊 재적비교</div>
 </div>
 
 <!-- 탭1: 기본정보 -->
 <div class="page active" id="page0">
-
   <div class="card">
-    <div class="card-head">📋 표준지 정보</div>
-    <div class="card-body">
+    <div class="ch">📋 표준지 정보</div>
+    <div class="cb">
       <div class="row2">
-        <div class="field">
-          <label>표준지 번호</label>
-          <input type="text" id="plot-no" placeholder="예) 001">
-        </div>
-        <div class="field">
-          <label>조사 일자</label>
-          <input type="date" id="survey-date">
-        </div>
+        <div class="field"><label>표준지 번호</label><input type="text" id="plot-no" placeholder="예) 001"></div>
+        <div class="field"><label>조사 일자</label><input type="date" id="survey-date"></div>
       </div>
-      <div class="field">
-        <label>조사자</label>
-        <input type="text" id="surveyor" placeholder="이름 입력">
-      </div>
-      <div class="field">
-        <label>경사도 (°)</label>
-        <input type="number" id="slope" placeholder="예) 15" min="0" max="90" step="0.1">
-      </div>
+      <div class="field"><label>조사자</label><input type="text" id="surveyor" placeholder="이름 입력"></div>
+      <div class="field"><label>경사도 (°)</label><input type="number" id="slope" placeholder="예) 15" min="0" max="90" step="0.1"></div>
     </div>
   </div>
-
   <div class="card">
-    <div class="card-head">📍 GPS 좌표</div>
-    <div class="card-body">
+    <div class="ch">📍 GPS 좌표</div>
+    <div class="cb">
       <div class="gps-wrap">
-        <div class="field" style="margin:0">
-          <label>X 좌표 (위도)</label>
-          <input type="text" id="coord-x" placeholder="자동입력" readonly>
-        </div>
-        <div class="field" style="margin:0">
-          <label>Y 좌표 (경도)</label>
-          <input type="text" id="coord-y" placeholder="자동입력" readonly>
-        </div>
-        <button class="gps-trigger" onclick="getGPS()" title="현재 위치 가져오기">📡</button>
+        <div class="field" style="margin:0"><label>X 좌표 (위도)</label><input type="text" id="coord-x" placeholder="자동입력" readonly></div>
+        <div class="field" style="margin:0"><label>Y 좌표 (경도)</label><input type="text" id="coord-y" placeholder="자동입력" readonly></div>
+        <button class="gps-btn" onclick="getGPS()" title="GPS 가져오기">📡</button>
       </div>
-      <div class="gps-note" id="gps-status">📡 버튼을 눌러 현재 GPS 위치를 가져오세요. 위치 권한 허용이 필요합니다.</div>
+      <div class="gps-note" id="gps-status">📡 버튼을 눌러 현재 GPS 위치를 가져오세요.</div>
     </div>
   </div>
-
 </div>
 
 <!-- 탭2: 표시목 -->
 <div class="page" id="page1">
   <div class="card">
-    <div class="card-head">🚩 표시목 정보</div>
-    <div class="card-body">
+    <div class="ch">🚩 표시목 정보</div>
+    <div class="cb">
       <div class="mark-block">
         <div class="mark-num" data-n="1">표시목 1</div>
         <div class="row2">
-          <div class="field"><label>기준점 거리 (m)</label><input type="number" id="m1-dist" placeholder="0.0" step="0.1" min="0"></div>
-          <div class="field"><label>기준점 방위 (°)</label><input type="number" id="m1-azim" placeholder="0 ~ 360" min="0" max="360" step="1"></div>
+          <div class="field"><label>기준점으로부터 거리 (m)</label><input type="number" id="m1-dist" placeholder="0.0" step="0.1" min="0"></div>
+          <div class="field"><label>기준점으로부터 방위 (°)</label><input type="number" id="m1-azim" placeholder="0~360" min="0" max="360"></div>
         </div>
       </div>
       <div class="mark-block">
         <div class="mark-num" data-n="2">표시목 2</div>
         <div class="row2">
-          <div class="field"><label>기준점 거리 (m)</label><input type="number" id="m2-dist" placeholder="0.0" step="0.1" min="0"></div>
-          <div class="field"><label>기준점 방위 (°)</label><input type="number" id="m2-azim" placeholder="0 ~ 360" min="0" max="360" step="1"></div>
+          <div class="field"><label>기준점으로부터 거리 (m)</label><input type="number" id="m2-dist" placeholder="0.0" step="0.1" min="0"></div>
+          <div class="field"><label>기준점으로부터 방위 (°)</label><input type="number" id="m2-azim" placeholder="0~360" min="0" max="360"></div>
         </div>
       </div>
       <div class="mark-block">
         <div class="mark-num" data-n="3">표시목 3</div>
         <div class="row2">
-          <div class="field"><label>기준점 거리 (m)</label><input type="number" id="m3-dist" placeholder="0.0" step="0.1" min="0"></div>
-          <div class="field"><label>기준점 방위 (°)</label><input type="number" id="m3-azim" placeholder="0 ~ 360" min="0" max="360" step="1"></div>
+          <div class="field"><label>기준점으로부터 거리 (m)</label><input type="number" id="m3-dist" placeholder="0.0" step="0.1" min="0"></div>
+          <div class="field"><label>기준점으로부터 방위 (°)</label><input type="number" id="m3-azim" placeholder="0~360" min="0" max="360"></div>
         </div>
       </div>
     </div>
@@ -285,170 +186,349 @@
 
 <!-- 탭3: 수목조사 -->
 <div class="page" id="page2">
-  <div class="card" style="margin-bottom:12px; overflow:visible">
+  <div class="card">
     <div class="tree-toolbar">
       <div class="tree-count" id="tree-count">0 / 0 행 입력됨</div>
-      <button class="add-row-btn" onclick="addRow()">+ 행 추가</button>
+      <button class="add-btn" onclick="addRow()">+ 행 추가</button>
     </div>
-    <div class="table-wrap">
+    <div class="tbl-wrap">
       <table>
         <thead>
           <tr>
-            <th style="width:26px">No</th>
+            <th style="width:24px">No</th>
             <th style="min-width:100px">수종</th>
-            <th style="min-width:72px">흉고직경<br>(cm)</th>
-            <th style="min-width:65px">수고<br>(m)</th>
-            <th style="width:30px"></th>
+            <th style="min-width:70px">흉고직경<br>(cm)</th>
+            <th style="min-width:62px">수고<br>(m)</th>
+            <th style="width:28px"></th>
           </tr>
         </thead>
         <tbody id="tree-body"></tbody>
       </table>
     </div>
   </div>
+  <div class="exp-area">
+    <button class="exp-btn" onclick="exportCSV()">💾 CSV 파일로 저장</button>
+    <div class="exp-note">저장된 파일은 엑셀에서 바로 열 수 있습니다</div>
+  </div>
+</div>
 
-  <div class="export-area">
-    <button class="export-btn" onclick="exportCSV()">💾 CSV 파일로 저장</button>
-    <div class="export-note">저장된 파일은 엑셀에서 바로 열 수 있습니다</div>
+<!-- 탭4: 재적비교 -->
+<div class="page" id="page3">
+  <div class="info-box">
+    ℹ️ <strong>재적비교 사용법</strong><br>
+    ① 아래에 <strong>기존 조사자의 데이터</strong>를 입력하세요.<br>
+    ② 현재 야장(수목조사 탭) 데이터와 재적을 자동으로 비교합니다.<br>
+    ③ 재적표는 입목수간재적표(2023.12) 기준이 적용됩니다.
+  </div>
+
+  <div class="card">
+    <div class="ch">📥 기존 조사자 데이터 입력</div>
+    <div class="tree-toolbar" style="border-top:none">
+      <div class="tree-count" id="cmp-count">0행 입력됨</div>
+      <button class="add-btn" onclick="addCmpRow()">+ 행 추가</button>
+    </div>
+    <div class="cmp-table-wrap">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th style="width:24px">No</th>
+            <th style="min-width:100px">수종</th>
+            <th style="min-width:70px">흉고직경<br>(cm)</th>
+            <th style="min-width:62px">수고<br>(m)</th>
+            <th style="width:28px"></th>
+          </tr>
+        </thead>
+        <tbody id="cmp-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <button class="calc-btn" onclick="calcVolume()">⚖️ 재적 비교 계산</button>
+
+  <div class="result-box" id="result-box" style="display:none">
+    <div class="cmp-title">📊 재적 비교 결과</div>
+    <div class="result-row">
+      <span class="result-label">내 야장 총재적</span>
+      <span class="result-val" id="res-my">-</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">기존 조사자 총재적</span>
+      <span class="result-val" id="res-other">-</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">재적 차이</span>
+      <span class="result-val" id="res-diff">-</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">증감율 (오차율)</span>
+      <span class="result-val" id="res-rate">-</span>
+    </div>
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid #c8e0d0">
+      <div style="font-size:12px;font-weight:600;color:var(--gd);margin-bottom:6px">수종별 재적 상세</div>
+      <div id="res-detail"></div>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<script src="vol_table.js"></script>
 <script>
-const SPECIES = ['소나무','잣나무','낙엽송','참나무류','신갈나무','굴참나무','졸참나무','상수리나무','밤나무','오리나무','자작나무','물푸레나무','층층나무','벚나무','단풍나무','느티나무','전나무','구상나무','편백','삼나무','리기다소나무','해송(곰솔)','기타'];
+// ─── 수종 목록 ───
+const SPECIES = [
+  '소나무','잣나무','낙엽송','리기다소나무','편백','삼나무','해송',
+  '전나무','가문비나무','은행나무','기타 침엽수',
+  '신갈나무','상수리나무','굴참나무','졸참나무','갈참나무','떡갈나무',
+  '밤나무','자작나무','백합나무','이태리포플러','고로쇠나무','굴피나무',
+  '느릅나무','느티나무','단풍나무','물박달나무','물오리나무','물푸레나무',
+  '산벚나무','서어나무','아까시나무','오리나무','음나무','층층나무',
+  '기타 버드나무속','기타 활엽수'
+];
 
-let rowSeq = 0;
-
-// 탭 전환
-function switchTab(idx) {
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===idx));
-  document.querySelectorAll('.page').forEach((p,i) => p.classList.toggle('active', i===idx));
+// 흉고직경 옵션 (2cm 단위 선택, 1~80)
+function dbhOptions() {
+  let o = '<option value="">선택</option>';
+  for(let d=2;d<=80;d+=2) o += `<option value="${d}">${d}</option>`;
+  return o;
+}
+// 수고 옵션 (1m 단위, 1~40)
+function htOptions() {
+  let o = '<option value="">선택</option>';
+  for(let h=1;h<=40;h++) o += `<option value="${h}">${h}</option>`;
+  return o;
+}
+// 수종 옵션
+function spOptions(sel='') {
+  return '<option value="">선택</option>' + SPECIES.map(s=>`<option value="${s}"${s===sel?' selected':''}>${s}</option>`).join('');
 }
 
-// 오늘 날짜 자동
+// ─── 탭 전환 ───
+function switchTab(i) {
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('active',i===j));
+}
+
+// ─── 날짜 기본값 ───
 document.getElementById('survey-date').value = new Date().toISOString().split('T')[0];
 
-// GPS
+// ─── GPS ───
 function getGPS() {
   const st = document.getElementById('gps-status');
-  if (!navigator.geolocation) { st.textContent = '⚠️ 이 브라우저는 GPS를 지원하지 않습니다.'; return; }
-  st.textContent = '⏳ 위치 정보를 가져오는 중...';
+  if (!navigator.geolocation) { st.textContent='⚠️ GPS 미지원 브라우저'; return; }
+  st.textContent='⏳ 위치 정보를 가져오는 중...';
   navigator.geolocation.getCurrentPosition(
-    pos => {
-      document.getElementById('coord-x').value = pos.coords.latitude.toFixed(6);
-      document.getElementById('coord-y').value = pos.coords.longitude.toFixed(6);
-      st.textContent = '✅ GPS 입력 완료 — 정확도 약 ' + Math.round(pos.coords.accuracy) + 'm';
+    p => {
+      document.getElementById('coord-x').value = p.coords.latitude.toFixed(6);
+      document.getElementById('coord-y').value = p.coords.longitude.toFixed(6);
+      st.textContent = '✅ GPS 입력 완료 — 정확도 약 ' + Math.round(p.coords.accuracy) + 'm';
     },
-    err => {
-      const m = {1:'위치 권한이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해 주세요.',2:'위치 신호를 찾을 수 없습니다. 야외로 이동 후 다시 시도하세요.',3:'시간이 초과되었습니다. 다시 시도해 주세요.'};
-      st.textContent = '❌ ' + (m[err.code] || '오류가 발생했습니다.');
+    e => {
+      const m={1:'위치 권한이 거부되었습니다.',2:'위치 신호를 찾을 수 없습니다.',3:'시간이 초과되었습니다.'};
+      st.textContent = '❌ ' + (m[e.code]||'오류 발생');
     },
-    {enableHighAccuracy:true, timeout:15000, maximumAge:0}
+    {enableHighAccuracy:true,timeout:15000,maximumAge:0}
   );
 }
 
-// 행 추가
+// ─── 수목조사 행 ───
+let rowSeq=0;
 function addRow() {
   rowSeq++;
-  const id = rowSeq;
-  const tr = document.createElement('tr');
-  tr.id = 'tr-' + id;
-  tr.innerHTML = `
-    <td class="no-cell">${id}</td>
-    <td><select onchange="updateCount()">
-      <option value="">선택</option>
-      ${SPECIES.map(s=>`<option value="${s}">${s}</option>`).join('')}
-    </select></td>
-    <td><input type="number" step="0.1" min="0" max="999" placeholder="0.0" oninput="updateCount()"></td>
-    <td><input type="number" step="0.1" min="0" max="99" placeholder="0.0" oninput="updateCount()"></td>
-    <td class="del-cell"><button class="del-btn" onclick="delRow(${id})" title="삭제">✕</button></td>
-  `;
+  const id=rowSeq;
+  const tr=document.createElement('tr');
+  tr.id='tr-'+id;
+  tr.innerHTML=`
+    <td class="no-c">${id}</td>
+    <td><select onchange="updateCount()">${spOptions()}</select></td>
+    <td><select onchange="updateCount()">${dbhOptions()}</select></td>
+    <td><select onchange="updateCount()">${htOptions()}</select></td>
+    <td class="del-c"><button class="del-btn" onclick="delRow(${id})">✕</button></td>`;
   document.getElementById('tree-body').appendChild(tr);
   updateCount();
   tr.querySelector('select').focus();
 }
-
 function delRow(id) {
-  const el = document.getElementById('tr-' + id);
-  if (el) el.remove();
+  const el=document.getElementById('tr-'+id);
+  if(el) el.remove();
   updateCount();
 }
-
 function updateCount() {
-  const rows = document.querySelectorAll('#tree-body tr');
-  const filled = [...rows].filter(r => r.querySelector('select').value !== '').length;
-  document.getElementById('tree-count').textContent = filled + ' / ' + rows.length + ' 행 입력됨';
+  const rows=[...document.querySelectorAll('#tree-body tr')];
+  const filled=rows.filter(r=>r.querySelectorAll('select')[0].value!=='').length;
+  document.getElementById('tree-count').textContent=filled+' / '+rows.length+' 행 입력됨';
+}
+for(let i=0;i<10;i++) addRow();
+
+// ─── 재적비교 행 ───
+let cmpSeq=0;
+function addCmpRow() {
+  cmpSeq++;
+  const id=cmpSeq;
+  const tr=document.createElement('tr');
+  tr.id='ctr-'+id;
+  tr.innerHTML=`
+    <td class="no-c">${id}</td>
+    <td><select onchange="updateCmpCount()">${spOptions()}</select></td>
+    <td><select onchange="updateCmpCount()">${dbhOptions()}</select></td>
+    <td><select onchange="updateCmpCount()">${htOptions()}</select></td>
+    <td class="del-c"><button class="del-btn" onclick="delCmpRow(${id})">✕</button></td>`;
+  document.getElementById('cmp-body').appendChild(tr);
+  updateCmpCount();
+}
+function delCmpRow(id) {
+  const el=document.getElementById('ctr-'+id);
+  if(el) el.remove();
+  updateCmpCount();
+}
+function updateCmpCount() {
+  const rows=[...document.querySelectorAll('#cmp-body tr')];
+  const filled=rows.filter(r=>r.querySelectorAll('select')[0].value!=='').length;
+  document.getElementById('cmp-count').textContent=filled+'행 입력됨';
+}
+for(let i=0;i<5;i++) addCmpRow();
+
+// ─── 재적 계산 함수 ───
+function getVolume(species, dbh, height) {
+  // 수종 매핑
+  const tableKey = SPECIES_MAP[species];
+  if (!tableKey) return 0;
+  const spData = VOL[tableKey];
+  if (!spData) return 0;
+  // DBH 인덱스: DBH값-1 (배열 0번 = DBH 1cm)
+  const dbhIdx = parseInt(dbh) - 1;
+  const htIdx  = parseInt(height) - 1;
+  if (dbhIdx < 0 || dbhIdx >= spData.length) return 0;
+  const row = spData[dbhIdx];
+  if (!row || htIdx < 0 || htIdx >= row.length) return 0;
+  return row[htIdx] || 0;
 }
 
-// 기본 10행
-for (let i = 0; i < 10; i++) addRow();
-
-// 토스트
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+function collectTreeData(bodyId) {
+  const rows = [...document.querySelectorAll('#' + bodyId + ' tr')];
+  const data = [];
+  rows.forEach(tr => {
+    const sels = tr.querySelectorAll('select');
+    const sp  = sels[0].value;
+    const dbh = sels[1].value;
+    const ht  = sels[2].value;
+    if (sp && dbh && ht) {
+      const vol = getVolume(sp, dbh, ht);
+      data.push({sp, dbh: parseInt(dbh), ht: parseInt(ht), vol});
+    }
+  });
+  return data;
 }
 
-// CSV 내보내기
+function calcVolume() {
+  const myData    = collectTreeData('tree-body');
+  const otherData = collectTreeData('cmp-body');
+
+  if (myData.length === 0 && otherData.length === 0) {
+    showToast('⚠️ 데이터를 입력해 주세요'); return;
+  }
+
+  const myTotal    = myData.reduce((s,r)=>s+r.vol,0);
+  const otherTotal = otherData.reduce((s,r)=>s+r.vol,0);
+  const diff       = myTotal - otherTotal;
+  const rate       = otherTotal > 0 ? (diff / otherTotal * 100) : 0;
+
+  document.getElementById('res-my').textContent    = myTotal.toFixed(4)    + ' ㎥';
+  document.getElementById('res-other').textContent = otherTotal.toFixed(4) + ' ㎥';
+
+  const diffEl = document.getElementById('res-diff');
+  diffEl.textContent = (diff >= 0 ? '+' : '') + diff.toFixed(4) + ' ㎥';
+  diffEl.className = 'result-val ' + (diff > 0 ? 'up' : diff < 0 ? 'dn' : '');
+
+  const rateEl = document.getElementById('res-rate');
+  const rateStr = (rate >= 0 ? '+' : '') + rate.toFixed(2) + '%';
+  rateEl.innerHTML = `<span class="diff-badge ${rate>0?'diff-up':rate<0?'diff-dn':'diff-eq'}">${rateStr}</span>`;
+
+  // 수종별 상세
+  const spMap = {};
+  myData.forEach(r=>{
+    if(!spMap[r.sp]) spMap[r.sp]={my:0,other:0};
+    spMap[r.sp].my += r.vol;
+  });
+  otherData.forEach(r=>{
+    if(!spMap[r.sp]) spMap[r.sp]={my:0,other:0};
+    spMap[r.sp].other += r.vol;
+  });
+
+  let detail = '';
+  Object.entries(spMap).forEach(([sp,v])=>{
+    const d = v.my - v.other;
+    const cls = d > 0 ? 'diff-up' : d < 0 ? 'diff-dn' : 'diff-eq';
+    const dStr = (d>=0?'+':'') + d.toFixed(4);
+    detail += `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #dde8dd;font-size:12px">
+      <span style="color:var(--tx);font-weight:500">${sp}</span>
+      <span style="color:var(--ts)">내: ${v.my.toFixed(4)} / 기존: ${v.other.toFixed(4)}</span>
+      <span class="diff-badge ${cls}" style="font-size:11px">${dStr}</span>
+    </div>`;
+  });
+  document.getElementById('res-detail').innerHTML = detail || '<div style="font-size:12px;color:var(--ts);padding:6px 0">수종별 내역 없음</div>';
+
+  document.getElementById('result-box').style.display = 'block';
+  document.getElementById('result-box').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+// ─── CSV 내보내기 ───
 function exportCSV() {
-  const plotNo   = document.getElementById('plot-no').value.trim() || '';
-  const date     = document.getElementById('survey-date').value || '';
-  const surveyor = document.getElementById('surveyor').value.trim() || '';
-  const x        = document.getElementById('coord-x').value || '';
-  const y        = document.getElementById('coord-y').value || '';
-  const slope    = document.getElementById('slope').value || '';
-  const m1d = document.getElementById('m1-dist').value || '';
-  const m1a = document.getElementById('m1-azim').value || '';
-  const m2d = document.getElementById('m2-dist').value || '';
-  const m2a = document.getElementById('m2-azim').value || '';
-  const m3d = document.getElementById('m3-dist').value || '';
-  const m3a = document.getElementById('m3-azim').value || '';
+  const plotNo   = document.getElementById('plot-no').value.trim()||'';
+  const date     = document.getElementById('survey-date').value||'';
+  const surveyor = document.getElementById('surveyor').value.trim()||'';
+  const x        = document.getElementById('coord-x').value||'';
+  const y        = document.getElementById('coord-y').value||'';
+  const slope    = document.getElementById('slope').value||'';
+  const m1d=document.getElementById('m1-dist').value||'';
+  const m1a=document.getElementById('m1-azim').value||'';
+  const m2d=document.getElementById('m2-dist').value||'';
+  const m2a=document.getElementById('m2-azim').value||'';
+  const m3d=document.getElementById('m3-dist').value||'';
+  const m3a=document.getElementById('m3-azim').value||'';
 
-  const rows = [...document.querySelectorAll('#tree-body tr')];
-  const dataRows = rows.filter(r => {
-    const s = r.querySelector('select').value;
-    const inputs = r.querySelectorAll('input[type="number"]');
-    return s || inputs[0].value || inputs[1].value;
+  const rows=[...document.querySelectorAll('#tree-body tr')];
+  const dataRows=rows.filter(r=>{
+    const sels=r.querySelectorAll('select');
+    return sels[0].value||sels[1].value||sels[2].value;
+  });
+  if(dataRows.length===0){showToast('⚠️ 입력된 수목 데이터가 없습니다');return;}
+
+  const BOM='\uFEFF';
+  const hdr='표준지번호,조사일자,조사자,X좌표(위도),Y좌표(경도),경사도(°),표시목1_거리(m),표시목1_방위(°),표시목2_거리(m),표시목2_방위(°),표시목3_거리(m),표시목3_방위(°),수종,흉고직경(cm),수고(m),단재적(㎥)\n';
+
+  let body='';
+  dataRows.forEach((tr,idx)=>{
+    const sels=tr.querySelectorAll('select');
+    const sp=sels[0].value; const dbh=sels[1].value; const ht=sels[2].value;
+    const vol=getVolume(sp,dbh,ht);
+    const meta=idx===0?[plotNo,date,surveyor,x,y,slope,m1d,m1a,m2d,m2a,m3d,m3a]:['','','','','','','','','','','',''];
+    body+=[...meta,sp,dbh,ht,vol?vol.toFixed(6):''].join(',')+'\n';
   });
 
-  if (dataRows.length === 0) { showToast('⚠️ 입력된 수목 데이터가 없습니다'); return; }
-
-  const BOM = '\uFEFF';
-  const header = '표준지번호,조사일자,조사자,X좌표(위도),Y좌표(경도),경사도(°),표시목1_거리(m),표시목1_방위(°),표시목2_거리(m),표시목2_방위(°),표시목3_거리(m),표시목3_방위(°),수종,흉고직경(cm),수고(m)\n';
-
-  let body = '';
-  dataRows.forEach((tr, idx) => {
-    const sel = tr.querySelector('select').value;
-    const nums = tr.querySelectorAll('input[type="number"]');
-    const dbh = nums[0].value;
-    const ht  = nums[1].value;
-    const meta = idx === 0
-      ? [plotNo, date, surveyor, x, y, slope, m1d, m1a, m2d, m2a, m3d, m3a]
-      : ['', '', '', '', '', '', '', '', '', '', '', ''];
-    body += [...meta, sel, dbh, ht].join(',') + '\n';
-  });
-
-  const blob = new Blob([BOM + header + body], {type: 'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = '산림조사_' + (plotNo || '표준지') + '_' + (date || '날짜없음') + '.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const blob=new Blob([BOM+hdr+body],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='산림조사_'+(plotNo||'표준지')+'_'+(date||'날짜없음')+'.csv';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
   showToast('✅ CSV 저장 완료!');
 }
 
-// PWA 설치 안내 (iOS Safari)
-if (navigator.standalone === false && /iphone|ipad|ipod/i.test(navigator.userAgent)) {
-  setTimeout(() => showToast('📲 Safari → 공유 → 홈 화면에 추가 로 설치하세요'), 2000);
+// ─── 토스트 ───
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-// Service Worker 등록
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+// ─── iOS 설치 안내 ───
+if(navigator.standalone===false && /iphone|ipad|ipod/i.test(navigator.userAgent)){
+  setTimeout(()=>showToast('📲 Safari → 공유 → 홈 화면에 추가'),2000);
+}
+
+// ─── Service Worker ───
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
 </script>
 </body>
