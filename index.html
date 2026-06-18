@@ -288,7 +288,7 @@ const SPECIES = [
 // 흉고직경 옵션 (2cm 단위 선택, 1~80)
 function dbhOptions() {
   let o = '<option value="">선택</option>';
-  for(let d=2;d<=80;d+=2) o += `<option value="${d}">${d}</option>`;
+  for(let d=6;d<=80;d+=2) o += `<option value="${d}">${d}</option>`;
   return o;
 }
 // 수고 옵션 (1m 단위, 1~40)
@@ -385,7 +385,7 @@ function updateCmpCount() {
   const filled=rows.filter(r=>r.querySelectorAll('select')[0].value!=='').length;
   document.getElementById('cmp-count').textContent=filled+'행 입력됨';
 }
-for(let i=0;i<5;i++) addCmpRow();
+for(let i=0;i<10;i++) addCmpRow();
 
 // ─── 재적 계산 함수 ───
 function getVolume(species, dbh, height) {
