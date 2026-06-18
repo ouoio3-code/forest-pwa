@@ -467,8 +467,20 @@ function calcVolume() {
   });
   document.getElementById('res-detail').innerHTML = detail || '<div style="font-size:12px;color:var(--ts);padding:6px 0">수종별 내역 없음</div>';
 
-  document.getElementById('result-box').style.display = 'block';
-  document.getElementById('result-box').scrollIntoView({behavior:'smooth', block:'nearest'});
+  // 결과창 초기화 후 표시 (매번 다시 렌더링)
+  const box = document.getElementById('result-box');
+  box.style.display = 'none';
+  void box.offsetHeight; // 강제 리플로우 → 애니메이션 리셋
+  box.style.display = 'block';
+
+  // 버튼 깜빡임 피드백
+  const btn = document.querySelector('.calc-btn');
+  btn.textContent = '✅ 계산 완료!';
+  btn.style.background = 'var(--gd)';
+  setTimeout(() => {
+    btn.innerHTML = '⚖️ 재적 비교 계산';
+    btn.style.background = '';
+  }, 800);
 }
 
 // ─── CSV 내보내기 ───
