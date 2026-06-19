@@ -214,7 +214,9 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
             <th style="min-width:100px">수종</th>
             <th style="min-width:70px">흉고직경<br>(cm)</th>
             <th style="min-width:62px">수고<br>(m)</th>
-            <th style="min-width:72px">XY획득</th>
+            <th style="min-width:58px">X (m)</th>
+            <th style="min-width:58px">Y (m)</th>
+            <th style="min-width:68px">XY획득</th>
             <th style="width:28px"></th>
           </tr>
         </thead>
@@ -225,28 +227,6 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
   <div class="exp-area">
     <button class="exp-btn" onclick="exportCSV()">💾 CSV 파일로 저장</button>
     <div class="exp-note">저장된 파일은 엑셀에서 바로 열 수 있습니다</div>
-  </div>
-</div>
-
-<!-- 탭5: 3D 임분 -->
-<div class="page" id="page4">
-  <div class="info-box">
-    ℹ️ <strong>3D 임분 사용법</strong><br>
-    ① <strong>기본정보 탭</strong>에서 GPS를 먼저 가져온 뒤 [표준지 중심 설정]을 누르세요.<br>
-    ② 수목조사 탭에서 각 행의 <strong>[XY 획득]</strong> 버튼으로 나무 위치를 저장하세요.<br>
-    ③ 아래 캔버스에 임분이 자동으로 그려집니다.
-  </div>
-  <div class="card">
-    <div class="ch">🌲 표준지 3D 임분 현황</div>
-    <div class="forest3d-toolbar">
-      <div class="forest3d-status" id="forest3d-status">기본정보 탭에서 GPS를 가져온 뒤 [표준지 중심 설정]을 눌러주세요.</div>
-      <div class="forest3d-actions">
-        <button class="small-btn primary" onclick="setPlotCenterFromGPS()">📍 표준지 중심 설정</button>
-        <button class="small-btn" onclick="renderForest3D()">🔄 새로고침</button>
-      </div>
-    </div>
-    <div class="canvas-wrap"><canvas id="forest3d-canvas" width="900" height="520"></canvas></div>
-    <div class="forest3d-legend">○ 녹색 원은 400㎡ 표준지 경계(반경 ≈11.28m)입니다. 경계 밖 나무는 붉은 테두리로 표시됩니다.</div>
   </div>
 </div>
 
@@ -305,6 +285,28 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
       <div style="font-size:12px;font-weight:600;color:var(--gd);margin-bottom:6px">수종별 재적 상세</div>
       <div id="res-detail"></div>
     </div>
+  </div>
+</div>
+
+<!-- 탭5: 3D 임분 -->
+<div class="page" id="page4">
+  <div class="info-box">
+    ℹ️ <strong>3D 임분 사용법</strong><br>
+    ① <strong>기본정보 탭</strong>에서 GPS를 먼저 가져온 뒤 [표준지 중심 설정]을 누르세요.<br>
+    ② 수목조사 탭에서 각 행의 <strong>[XY 획득]</strong> 버튼으로 나무 위치를 저장하세요.<br>
+    ③ 아래 캔버스에 임분이 자동으로 그려집니다.
+  </div>
+  <div class="card">
+    <div class="ch">🌲 표준지 3D 임분 현황</div>
+    <div class="forest3d-toolbar">
+      <div class="forest3d-status" id="forest3d-status">기본정보 탭에서 GPS를 가져온 뒤 [표준지 중심 설정]을 눌러주세요.</div>
+      <div class="forest3d-actions">
+        <button class="small-btn primary" onclick="setPlotCenterFromGPS()">📍 표준지 중심 설정</button>
+        <button class="small-btn" onclick="renderForest3D()">🔄 새로고침</button>
+      </div>
+    </div>
+    <div class="canvas-wrap"><canvas id="forest3d-canvas" width="900" height="520"></canvas></div>
+    <div class="forest3d-legend">○ 녹색 원은 400㎡ 표준지 경계(반경 ≈11.28m)입니다. 경계 밖 나무는 붉은 테두리로 표시됩니다.</div>
   </div>
 </div>
 
@@ -382,6 +384,8 @@ function addRow() {
     <td><select onchange="updateCount(); renderForest3D();">${spOptions()}</select></td>
     <td><select onchange="updateCount(); renderForest3D();">${dbhOptions()}</select></td>
     <td><select onchange="updateCount(); renderForest3D();">${htOptions()}</select></td>
+    <td class="xy-val" id="xy-x-${id}" style="font-size:11px;color:#888;">-</td>
+    <td class="xy-val" id="xy-y-${id}" style="font-size:11px;color:#888;">-</td>
     <td><button class="xy-btn" id="xy-btn-${id}" onclick="acquireTreeXY(${id})">XY 획득</button></td>
     <td class="del-c"><button class="del-btn" onclick="delRow(${id})">✕</button></td>`;
   document.getElementById('tree-body').appendChild(tr);
@@ -457,10 +461,16 @@ function acquireTreeXY(id){
         tr.dataset.y = xy.y.toFixed(2);
         tr.dataset.gpsAccuracy = Math.round(p.coords.accuracy);
         const dist = Math.sqrt(xy.x*xy.x + xy.y*xy.y);
+        // X, Y 셀 업데이트
+        const xCell = document.getElementById('xy-x-'+id);
+        const yCell = document.getElementById('xy-y-'+id);
+        if(xCell) { xCell.textContent = xy.x.toFixed(2); xCell.style.color = dist > PLOT_RADIUS_M ? '#c0392b' : '#1a5c38'; }
+        if(yCell) { yCell.textContent = xy.y.toFixed(2); yCell.style.color = dist > PLOT_RADIUS_M ? '#c0392b' : '#1a5c38'; }
         if(btn){
-          btn.textContent = '완료';
+          btn.textContent = '재획득';
+          btn.classList.remove('ok','warn');
           btn.classList.toggle('warn', dist > PLOT_RADIUS_M);
-          btn.classList.add('ok');
+          btn.classList.toggle('ok', dist <= PLOT_RADIUS_M);
           btn.title = `X ${xy.x.toFixed(2)}m, Y ${xy.y.toFixed(2)}m, 정확도 약 ${Math.round(p.coords.accuracy)}m`;
         }
         showToast(dist > PLOT_RADIUS_M ? '⚠️ XY 저장 완료: 표준지 밖 좌표입니다' : '✅ XY 저장 완료');
