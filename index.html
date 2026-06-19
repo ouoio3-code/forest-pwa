@@ -404,7 +404,6 @@ function updateCount() {
   document.getElementById('tree-count').textContent=filled+' / '+rows.length+' 행 입력됨';
 }
 for(let i=0;i<10;i++) addRow();
-initForest3D();
 
 
 // ─── 3D 임분 구현: GPS 기반 XY 자동 획득 + 내장 캔버스 시각화 ───
@@ -611,9 +610,11 @@ function delCmpRow(id) {
 function updateCmpCount() {
   const rows=[...document.querySelectorAll('#cmp-body tr')];
   const filled=rows.filter(r=>r.querySelectorAll('select')[0].value!=='').length;
-  document.getElementById('cmp-count').textContent=filled+'행 입력됨';
+  document.getElementById('cmp-count').textContent=filled+' / '+rows.length+'행 입력됨';
 }
 for(let i=0;i<10;i++) addCmpRow();
+initForest3D();
+renderForest3D();
 
 // ─── 재적 계산 함수 ───
 function getVolume(species, dbh, height) {
