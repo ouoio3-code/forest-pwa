@@ -72,7 +72,7 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
 .del-btn:active{background:#fee;color:var(--rd)}
 
 
-/* 3D 임분 구현 */
+/* 2D 임분 구현 */
 .xy-btn{height:30px;min-width:56px;border:1px solid var(--gm);border-radius:7px;background:var(--gl);color:var(--gd);font-size:12px;font-weight:600;cursor:pointer}
 .xy-btn.ok{background:#d4edda;color:#155724;border-color:#9fd0aa}
 .xy-btn.warn{background:#fff3cd;color:#856404;border-color:#e7c76f}
@@ -140,7 +140,7 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
   <div class="tab" onclick="switchTab(1)">🚩 표시목</div>
   <div class="tab" onclick="switchTab(2)">🌳 수목조사</div>
   <div class="tab" onclick="switchTab(3)">📊 재적비교</div>
-  <div class="tab" onclick="switchTab(4)">🌲 3D임분</div>
+  <div class="tab" onclick="switchTab(4)">🗺️ 2D임분</div>
 </div>
 
 <!-- 탭1: 기본정보 -->
@@ -214,9 +214,9 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
             <th style="min-width:100px">수종</th>
             <th style="min-width:70px">흉고직경<br>(cm)</th>
             <th style="min-width:62px">수고<br>(m)</th>
-            <th style="min-width:58px">X (m)</th>
-            <th style="min-width:58px">Y (m)</th>
             <th style="min-width:68px">XY획득</th>
+            <th style="min-width:88px">위도</th>
+            <th style="min-width:96px">경도</th>
             <th style="width:28px"></th>
           </tr>
         </thead>
@@ -288,16 +288,16 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
   </div>
 </div>
 
-<!-- 탭5: 3D 임분 -->
+<!-- 탭5: 2D 임분 -->
 <div class="page" id="page4">
   <div class="info-box">
-    ℹ️ <strong>3D 임분 사용법</strong><br>
+    ℹ️ <strong>2D 임분 사용법</strong><br>
     ① <strong>기본정보 탭</strong>에서 GPS를 먼저 가져온 뒤 [표준지 중심 설정]을 누르세요.<br>
     ② 수목조사 탭에서 각 행의 <strong>[XY 획득]</strong> 버튼으로 나무 위치를 저장하세요.<br>
-    ③ 아래 캔버스에 임분이 자동으로 그려집니다.
+    ③ 아래 캔버스에 임분 위치가 2D로 자동 표시됩니다.
   </div>
   <div class="card">
-    <div class="ch">🌲 표준지 3D 임분 현황</div>
+    <div class="ch">🌲 표준지 2D 임분 현황</div>
     <div class="forest3d-toolbar">
       <div class="forest3d-status" id="forest3d-status">기본정보 탭에서 GPS를 가져온 뒤 [표준지 중심 설정]을 눌러주세요.</div>
       <div class="forest3d-actions">
@@ -306,7 +306,7 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
       </div>
     </div>
     <div class="canvas-wrap"><canvas id="forest3d-canvas" width="900" height="520"></canvas></div>
-    <div class="forest3d-legend">○ 녹색 원은 400㎡ 표준지 경계(반경 ≈11.28m)입니다. 경계 밖 나무는 붉은 테두리로 표시됩니다.</div>
+    <div class="forest3d-legend">○ 녹색 원은 400㎡ 표준지 경계(반경 ≈11.28m)입니다. 경계 밖 나무는 붉은 테두리로 표시됩니다. 수목조사 탭에는 실제 위도·경도가 표시됩니다.</div>
   </div>
 </div>
 
@@ -384,9 +384,9 @@ function addRow() {
     <td><select onchange="updateCount(); renderForest3D();">${spOptions()}</select></td>
     <td><select onchange="updateCount(); renderForest3D();">${dbhOptions()}</select></td>
     <td><select onchange="updateCount(); renderForest3D();">${htOptions()}</select></td>
+    <td><button class="xy-btn" id="xy-btn-${id}" onclick="acquireTreeXY(${id})">XY 획득</button></td>
     <td class="xy-val" id="xy-x-${id}" style="font-size:11px;color:#888;">-</td>
     <td class="xy-val" id="xy-y-${id}" style="font-size:11px;color:#888;">-</td>
-    <td><button class="xy-btn" id="xy-btn-${id}" onclick="acquireTreeXY(${id})">XY 획득</button></td>
     <td class="del-c"><button class="del-btn" onclick="delRow(${id})">✕</button></td>`;
   document.getElementById('tree-body').appendChild(tr);
   updateCount();
@@ -406,7 +406,7 @@ function updateCount() {
 for(let i=0;i<10;i++) addRow();
 
 
-// ─── 3D 임분 구현: GPS 기반 XY 자동 획득 + 내장 캔버스 시각화 ───
+// ─── 2D 임분 구현: GPS 기반 XY 자동 획득 + 내장 캔버스 시각화 ───
 const PLOT_RADIUS_M = Math.sqrt(400 / Math.PI);
 let plotCenter = null;
 try { plotCenter = JSON.parse(localStorage.getItem('plotCenterGPS') || 'null'); } catch(e){}
@@ -447,7 +447,7 @@ function gpsToXY(lat, lon){
 }
 
 function acquireTreeXY(id){
-  if(!plotCenter){ showToast('⚠️ 3D임분 탭에서 표준지 중심점을 먼저 설정하세요'); return; }
+  if(!plotCenter){ showToast('⚠️ 2D임분 탭에서 표준지 중심점을 먼저 설정하세요'); return; }
   if(!navigator.geolocation){ showToast('⚠️ GPS 미지원 브라우저입니다'); return; }
   const btn = document.getElementById('xy-btn-'+id);
   if(btn) btn.textContent = '획득중';
@@ -456,21 +456,23 @@ function acquireTreeXY(id){
       const xy = gpsToXY(p.coords.latitude, p.coords.longitude);
       const tr = document.getElementById('tr-'+id);
       if(tr && xy){
-        tr.dataset.x = xy.x.toFixed(2);
-        tr.dataset.y = xy.y.toFixed(2);
+        tr.dataset.x = xy.x.toFixed(2);              // 2D 임분 배치용 상대 X(m)
+        tr.dataset.y = xy.y.toFixed(2);              // 2D 임분 배치용 상대 Y(m)
+        tr.dataset.lat = p.coords.latitude.toFixed(6);   // 화면/CSV 표시용 실제 위도
+        tr.dataset.lon = p.coords.longitude.toFixed(6);  // 화면/CSV 표시용 실제 경도
         tr.dataset.gpsAccuracy = Math.round(p.coords.accuracy);
         const dist = Math.sqrt(xy.x*xy.x + xy.y*xy.y);
-        // X, Y 셀 업데이트
+        // 위도, 경도 셀 업데이트
         const xCell = document.getElementById('xy-x-'+id);
         const yCell = document.getElementById('xy-y-'+id);
-        if(xCell) { xCell.textContent = xy.x.toFixed(2); xCell.style.color = dist > PLOT_RADIUS_M ? '#c0392b' : '#1a5c38'; }
-        if(yCell) { yCell.textContent = xy.y.toFixed(2); yCell.style.color = dist > PLOT_RADIUS_M ? '#c0392b' : '#1a5c38'; }
+        if(xCell) { xCell.textContent = p.coords.latitude.toFixed(6); xCell.style.color = dist > PLOT_RADIUS_M ? '#c0392b' : '#1a5c38'; }
+        if(yCell) { yCell.textContent = p.coords.longitude.toFixed(6); yCell.style.color = dist > PLOT_RADIUS_M ? '#c0392b' : '#1a5c38'; }
         if(btn){
           btn.textContent = '재획득';
           btn.classList.remove('ok','warn');
           btn.classList.toggle('warn', dist > PLOT_RADIUS_M);
           btn.classList.toggle('ok', dist <= PLOT_RADIUS_M);
-          btn.title = `X ${xy.x.toFixed(2)}m, Y ${xy.y.toFixed(2)}m, 정확도 약 ${Math.round(p.coords.accuracy)}m`;
+          btn.title = `위도 ${p.coords.latitude.toFixed(6)}, 경도 ${p.coords.longitude.toFixed(6)}, 정확도 약 ${Math.round(p.coords.accuracy)}m`;
         }
         showToast(dist > PLOT_RADIUS_M ? '⚠️ XY 저장 완료: 표준지 밖 좌표입니다' : '✅ XY 저장 완료');
         renderForest3D();
@@ -581,7 +583,7 @@ function renderForest3D(){
 
   if(trees.length===0){
     ctx.fillStyle='#5a5a5a'; ctx.font='15px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('3D 모드에서 수종·DBH·수고를 입력하고 XY 획득을 누르면 여기에 임분이 표시됩니다.', W/2, H/2);
+    ctx.fillText('2D 모드에서 수종·DBH·수고를 입력하고 XY 획득을 누르면 여기에 임분이 표시됩니다.', W/2, H/2);
     ctx.textAlign='left';
   }
 }
@@ -734,7 +736,7 @@ function exportCSV() {
   if(dataRows.length===0){showToast('⚠️ 입력된 수목 데이터가 없습니다');return;}
 
   const BOM='\uFEFF';
-  const hdr='표준지번호,조사일자,조사자,X좌표(위도),Y좌표(경도),경사도(°),표시목1_거리(m),표시목1_방위(°),표시목2_거리(m),표시목2_방위(°),표시목3_거리(m),표시목3_방위(°),수종,흉고직경(cm),수고(m),단재적(㎥),3D_X(m),3D_Y(m),GPS정확도(m),표준지밖여부\n';
+  const hdr='표준지번호,조사일자,조사자,X좌표(위도),Y좌표(경도),경사도(°),표시목1_거리(m),표시목1_방위(°),표시목2_거리(m),표시목2_방위(°),표시목3_거리(m),표시목3_방위(°),수종,흉고직경(cm),수고(m),단재적(㎥),위도,경도,2D_X(m),2D_Y(m),GPS정확도(m),표준지밖여부\n';
 
   let body='';
   dataRows.forEach((tr,idx)=>{
@@ -743,9 +745,9 @@ function exportCSV() {
     const vol=getVolume(sp,dbh,ht);
     const meta=idx===0?[plotNo,date,surveyor,x,y,slope,m1d,m1a,m2d,m2a,m3d,m3a]:['','','','','','','','','','','',''];
     
-    const tx=tr.dataset.x||''; const ty=tr.dataset.y||''; const acc=tr.dataset.gpsAccuracy||'';
+    const tx=tr.dataset.x||''; const ty=tr.dataset.y||''; const lat=tr.dataset.lat||''; const lon=tr.dataset.lon||''; const acc=tr.dataset.gpsAccuracy||'';
     const outside=(tx!==''&&ty!==''&&Math.sqrt(parseFloat(tx)*parseFloat(tx)+parseFloat(ty)*parseFloat(ty))>PLOT_RADIUS_M)?'Y':'';
-    body+=[...meta,sp,dbh,ht,vol?vol.toFixed(6):'',tx,ty,acc,outside].join(',')+'\n';
+    body+=[...meta,sp,dbh,ht,vol?vol.toFixed(6):'',lat,lon,tx,ty,acc,outside].join(',')+'\n';
   });
 
   const blob=new Blob([BOM+hdr+body],{type:'text/csv;charset=utf-8;'});
