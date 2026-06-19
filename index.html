@@ -773,7 +773,9 @@ if(navigator.standalone===false && /iphone|ipad|ipod/i.test(navigator.userAgent)
 
 // ─── Service Worker ───
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.update();
+  }).catch(()=>{});
 }
 </script>
 </body>
