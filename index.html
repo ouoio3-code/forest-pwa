@@ -71,6 +71,26 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
 .del-btn{width:26px;height:26px;border:none;background:none;color:#ccc;font-size:15px;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center}
 .del-btn:active{background:#fee;color:var(--rd)}
 
+
+/* 3D 임분 구현 */
+.mode-toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--gd);font-weight:600}
+.mode-toggle input{width:18px;height:18px;accent-color:var(--gd)}
+.xy-btn{height:30px;min-width:56px;border:1px solid var(--gm);border-radius:7px;background:var(--gl);color:var(--gd);font-size:12px;font-weight:600;cursor:pointer}
+.xy-btn.ok{background:#d4edda;color:#155724;border-color:#9fd0aa}
+.xy-btn.warn{background:#fff3cd;color:#856404;border-color:#e7c76f}
+.xy-col{display:none;min-width:72px}
+body.forest3d-on .xy-col{display:table-cell}
+.forest3d-panel{display:none;margin-top:12px}
+body.forest3d-on .forest3d-panel{display:block}
+.forest3d-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--bd);background:#fafafa}
+.forest3d-status{font-size:11px;color:var(--ts);line-height:1.4;flex:1;min-width:180px}
+.forest3d-actions{display:flex;gap:8px;flex-wrap:wrap}
+.small-btn{height:32px;padding:0 10px;border:1px solid var(--gm);border-radius:7px;background:var(--wh);color:var(--gd);font-size:12px;font-weight:600;cursor:pointer}
+.small-btn.primary{background:var(--gd);color:#fff}
+.canvas-wrap{padding:12px;background:#f7faf7}
+#forest3d-canvas{width:100%;height:360px;border:1px solid var(--bd);border-radius:10px;background:linear-gradient(#f5fbf5,#edf6ed);display:block}
+.forest3d-legend{font-size:11px;color:var(--ts);line-height:1.5;padding:0 14px 12px}
+
 /* 내보내기 */
 .exp-area{padding:14px}
 .exp-btn{width:100%;height:50px;background:var(--gd);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 3px 10px rgba(26,92,56,.3)}
@@ -188,7 +208,10 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
 <div class="page" id="page2">
   <div class="card">
     <div class="tree-toolbar">
-      <div class="tree-count" id="tree-count">0 / 0 행 입력됨</div>
+      <div>
+        <div class="tree-count" id="tree-count">0 / 0 행 입력됨</div>
+        <label class="mode-toggle"><input type="checkbox" id="forest3d-toggle" onchange="toggleForest3D(this.checked)"> 3D 임분 구현</label>
+      </div>
       <button class="add-btn" onclick="addRow()">+ 행 추가</button>
     </div>
     <div class="tbl-wrap">
@@ -199,11 +222,23 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
             <th style="min-width:100px">수종</th>
             <th style="min-width:70px">흉고직경<br>(cm)</th>
             <th style="min-width:62px">수고<br>(m)</th>
+            <th class="xy-col">XY</th>
             <th style="width:28px"></th>
           </tr>
         </thead>
         <tbody id="tree-body"></tbody>
       </table>
+    </div>
+    <div class="forest3d-panel" id="forest3d-panel">
+      <div class="forest3d-toolbar">
+        <div class="forest3d-status" id="forest3d-status">표준지 중심 GPS를 먼저 가져온 뒤, 나무 아래에서 각 행의 XY 획득을 누르세요.</div>
+        <div class="forest3d-actions">
+          <button class="small-btn primary" onclick="setPlotCenterFromGPS()">표준지 중심 설정</button>
+          <button class="small-btn" onclick="renderForest3D()">3D 새로고침</button>
+        </div>
+      </div>
+      <div class="canvas-wrap"><canvas id="forest3d-canvas" width="900" height="520"></canvas></div>
+      <div class="forest3d-legend">○ 녹색 원은 400㎡ 표준지 경계, 반경 11.28m입니다. 경계 밖 좌표도 삭제하지 않고 붉은 테두리로 표시합니다. X/Y·수관폭·수관형태·바이오매스 계수는 내부값으로만 저장됩니다.</div>
     </div>
   </div>
   <div class="exp-area">
@@ -337,11 +372,13 @@ function addRow() {
   const id=rowSeq;
   const tr=document.createElement('tr');
   tr.id='tr-'+id;
+  tr.dataset.treeId = id;
   tr.innerHTML=`
     <td class="no-c">${id}</td>
-    <td><select onchange="updateCount()">${spOptions()}</select></td>
-    <td><select onchange="updateCount()">${dbhOptions()}</select></td>
-    <td><select onchange="updateCount()">${htOptions()}</select></td>
+    <td><select onchange="updateCount(); renderForest3D();">${spOptions()}</select></td>
+    <td><select onchange="updateCount(); renderForest3D();">${dbhOptions()}</select></td>
+    <td><select onchange="updateCount(); renderForest3D();">${htOptions()}</select></td>
+    <td class="xy-col"><button class="xy-btn" id="xy-btn-${id}" onclick="acquireTreeXY(${id})">XY 획득</button></td>
     <td class="del-c"><button class="del-btn" onclick="delRow(${id})">✕</button></td>`;
   document.getElementById('tree-body').appendChild(tr);
   updateCount();
@@ -351,6 +388,7 @@ function delRow(id) {
   const el=document.getElementById('tr-'+id);
   if(el) el.remove();
   updateCount();
+  renderForest3D();
 }
 function updateCount() {
   const rows=[...document.querySelectorAll('#tree-body tr')];
@@ -358,6 +396,196 @@ function updateCount() {
   document.getElementById('tree-count').textContent=filled+' / '+rows.length+' 행 입력됨';
 }
 for(let i=0;i<10;i++) addRow();
+initForest3D();
+
+
+// ─── 3D 임분 구현: GPS 기반 XY 자동 획득 + 내장 캔버스 시각화 ───
+const PLOT_RADIUS_M = Math.sqrt(400 / Math.PI); // 400㎡ 원형 표준지 ≈ 11.28m
+let forest3DEnabled = localStorage.getItem('forest3DEnabled') === 'true';
+let plotCenter = JSON.parse(localStorage.getItem('plotCenterGPS') || 'null');
+
+function initForest3D(){
+  const chk = document.getElementById('forest3d-toggle');
+  if(chk) chk.checked = forest3DEnabled;
+  document.body.classList.toggle('forest3d-on', forest3DEnabled);
+  updateForest3DStatus();
+  setTimeout(renderForest3D, 100);
+}
+
+function toggleForest3D(on){
+  forest3DEnabled = !!on;
+  localStorage.setItem('forest3DEnabled', forest3DEnabled);
+  document.body.classList.toggle('forest3d-on', forest3DEnabled);
+  updateForest3DStatus();
+  renderForest3D();
+}
+
+function setPlotCenterFromGPS(){
+  const lat = parseFloat(document.getElementById('coord-x').value);
+  const lon = parseFloat(document.getElementById('coord-y').value);
+  if(!Number.isFinite(lat) || !Number.isFinite(lon)){
+    showToast('⚠️ 기본정보 탭에서 GPS를 먼저 가져오세요');
+    return;
+  }
+  plotCenter = {lat, lon, savedAt: new Date().toISOString()};
+  localStorage.setItem('plotCenterGPS', JSON.stringify(plotCenter));
+  updateForest3DStatus();
+  showToast('✅ 표준지 중심점 설정 완료');
+}
+
+function updateForest3DStatus(){
+  const el = document.getElementById('forest3d-status');
+  if(!el) return;
+  if(!forest3DEnabled){ el.textContent = '3D 임분 구현이 꺼져 있습니다.'; return; }
+  if(plotCenter){
+    el.textContent = `중심점 설정됨: 위도 ${plotCenter.lat.toFixed(6)}, 경도 ${plotCenter.lon.toFixed(6)} / 반경 ${PLOT_RADIUS_M.toFixed(2)}m`;
+  } else {
+    el.textContent = '표준지 중심 GPS를 먼저 가져온 뒤 [표준지 중심 설정]을 누르세요.';
+  }
+}
+
+function gpsToXY(lat, lon){
+  if(!plotCenter) return null;
+  const lat0 = plotCenter.lat * Math.PI / 180;
+  const x = (lon - plotCenter.lon) * 111320 * Math.cos(lat0);
+  const y = (lat - plotCenter.lat) * 110540;
+  return {x, y};
+}
+
+function acquireTreeXY(id){
+  if(!forest3DEnabled){ showToast('⚠️ 3D 임분 구현을 먼저 켜세요'); return; }
+  if(!plotCenter){ showToast('⚠️ 표준지 중심점을 먼저 설정하세요'); return; }
+  if(!navigator.geolocation){ showToast('⚠️ GPS 미지원 브라우저입니다'); return; }
+  const btn = document.getElementById('xy-btn-'+id);
+  if(btn) btn.textContent = '획득중';
+  navigator.geolocation.getCurrentPosition(
+    p => {
+      const xy = gpsToXY(p.coords.latitude, p.coords.longitude);
+      const tr = document.getElementById('tr-'+id);
+      if(tr && xy){
+        tr.dataset.x = xy.x.toFixed(2);
+        tr.dataset.y = xy.y.toFixed(2);
+        tr.dataset.gpsAccuracy = Math.round(p.coords.accuracy);
+        const dist = Math.sqrt(xy.x*xy.x + xy.y*xy.y);
+        if(btn){
+          btn.textContent = '완료';
+          btn.classList.toggle('warn', dist > PLOT_RADIUS_M);
+          btn.classList.add('ok');
+          btn.title = `X ${xy.x.toFixed(2)}m, Y ${xy.y.toFixed(2)}m, 정확도 약 ${Math.round(p.coords.accuracy)}m`;
+        }
+        showToast(dist > PLOT_RADIUS_M ? '⚠️ XY 저장 완료: 표준지 밖 좌표입니다' : '✅ XY 저장 완료');
+        renderForest3D();
+      }
+    },
+    e => {
+      if(btn) btn.textContent = 'XY 획득';
+      const m={1:'위치 권한이 거부되었습니다.',2:'위치 신호를 찾을 수 없습니다.',3:'시간이 초과되었습니다.'};
+      showToast('❌ ' + (m[e.code]||'GPS 오류'));
+    },
+    {enableHighAccuracy:true,timeout:15000,maximumAge:0}
+  );
+}
+
+function isConifer(sp){
+  return ['소나무','잣나무','낙엽송','리기다소나무','편백','삼나무','해송','전나무','가문비나무','은행나무','기타 침엽수'].includes(sp);
+}
+function seededRand(seed){
+  let x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+function hashStr(str){
+  let h=0; for(let i=0;i<str.length;i++) h=((h<<5)-h)+str.charCodeAt(i)|0; return Math.abs(h);
+}
+function getCrownInfo(tree){
+  const seed = hashStr(`${tree.no}-${tree.sp}-${tree.dbh}-${tree.ht}`);
+  const r1 = seededRand(seed), r2 = seededRand(seed+13);
+  const conifer = isConifer(tree.sp);
+  const biomassFactor = conifer ? 1.30 + r1*0.10 : 1.10 + r1*0.40;
+  const crownShape = conifer ? 'cone' : 'round';
+  const crownWidth = conifer
+    ? Math.max(1.0, tree.ht * (0.16 + r2*0.10) * biomassFactor)
+    : Math.max(1.2, tree.ht * (0.22 + r2*0.18) * biomassFactor);
+  return {biomassFactor, crownShape, crownWidth, seed};
+}
+
+function collectForest3DData(){
+  const rows=[...document.querySelectorAll('#tree-body tr')];
+  return rows.map(tr=>{
+    const sels=tr.querySelectorAll('select');
+    const sp=sels[0]?.value||'';
+    const dbh=parseFloat(sels[1]?.value||0);
+    const ht=parseFloat(sels[2]?.value||0);
+    const x=parseFloat(tr.dataset.x);
+    const y=parseFloat(tr.dataset.y);
+    if(!sp || !dbh || !ht || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+    const no=tr.dataset.treeId || tr.id.replace('tr-','');
+    const vol=getVolume(sp, dbh, ht);
+    const base={no, sp, dbh, ht, vol, x, y, gpsAccuracy:tr.dataset.gpsAccuracy||''};
+    return {...base, ...getCrownInfo(base)};
+  }).filter(Boolean);
+}
+
+function renderForest3D(){
+  const canvas=document.getElementById('forest3d-canvas');
+  if(!canvas || !forest3DEnabled) return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#f4faf4'; ctx.fillRect(0,0,W,H);
+  const trees=collectForest3DData();
+  const maxCoord=Math.max(PLOT_RADIUS_M, ...trees.map(t=>Math.sqrt(t.x*t.x+t.y*t.y)+2), 12);
+  const scale=Math.min(W*0.42, H*0.42)/maxCoord;
+  const cx=W*0.50, cy=H*0.55;
+
+  // grid
+  ctx.strokeStyle='#dbeadd'; ctx.lineWidth=1;
+  for(let m=-Math.ceil(maxCoord); m<=Math.ceil(maxCoord); m+=5){
+    ctx.beginPath(); ctx.moveTo(cx+m*scale, cy-maxCoord*scale); ctx.lineTo(cx+m*scale, cy+maxCoord*scale); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-maxCoord*scale, cy-m*scale); ctx.lineTo(cx+maxCoord*scale, cy-m*scale); ctx.stroke();
+  }
+  // plot boundary
+  ctx.strokeStyle='#1a5c38'; ctx.lineWidth=3; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(cx, cy, PLOT_RADIUS_M*scale, 0, Math.PI*2); ctx.stroke();
+  ctx.fillStyle='rgba(26,92,56,.06)'; ctx.beginPath(); ctx.arc(cx, cy, PLOT_RADIUS_M*scale, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#1a5c38'; ctx.font='13px sans-serif'; ctx.fillText('400㎡ 표준지 경계 r≈11.28m', 16, 24);
+
+  trees.sort((a,b)=>a.y-b.y).forEach(t=>{
+    const px=cx+t.x*scale, py=cy-t.y*scale;
+    const outside=Math.sqrt(t.x*t.x+t.y*t.y)>PLOT_RADIUS_M;
+    const trunkH=Math.max(18, t.ht*3.2);
+    const trunkW=Math.max(3, t.dbh/8);
+    const crownR=Math.max(10, t.crownWidth*scale*0.22);
+
+    // shadow
+    ctx.fillStyle='rgba(0,0,0,.16)'; ctx.beginPath(); ctx.ellipse(px, py+8, crownR*0.8, crownR*0.28, 0, 0, Math.PI*2); ctx.fill();
+    // trunk
+    ctx.fillStyle='#7a4b2a'; ctx.fillRect(px-trunkW/2, py-trunkH, trunkW, trunkH);
+    // crown
+    if(t.crownShape==='cone'){
+      ctx.fillStyle='#2e7d46'; ctx.beginPath(); ctx.moveTo(px, py-trunkH-crownR*1.9); ctx.lineTo(px-crownR, py-trunkH+crownR*.25); ctx.lineTo(px+crownR, py-trunkH+crownR*.25); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.16)'; ctx.beginPath(); ctx.moveTo(px, py-trunkH-crownR*1.7); ctx.lineTo(px-crownR*.45, py-trunkH); ctx.lineTo(px, py-trunkH+crownR*.1); ctx.closePath(); ctx.fill();
+    } else {
+      const seed=hashStr(String(t.seed));
+      ctx.fillStyle='#4a8f3a';
+      for(let i=0;i<6;i++){
+        const rr=seededRand(seed+i)*Math.PI*2;
+        const off=seededRand(seed+i+20)*crownR*.45;
+        const bx=px+Math.cos(rr)*off, by=py-trunkH-crownR*.55+Math.sin(rr)*off*.5;
+        ctx.beginPath(); ctx.arc(bx, by, crownR*(.55+seededRand(seed+i+40)*.28), 0, Math.PI*2); ctx.fill();
+      }
+    }
+    // marker
+    ctx.strokeStyle=outside?'#c0392b':'#1a5c38'; ctx.lineWidth=outside?3:1.5;
+    ctx.beginPath(); ctx.arc(px, py, Math.max(5,trunkW), 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle=outside?'#c0392b':'#1a1a1a'; ctx.font='11px sans-serif'; ctx.fillText(String(t.no), px+6, py-4);
+  });
+
+  if(trees.length===0){
+    ctx.fillStyle='#5a5a5a'; ctx.font='15px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('3D 모드에서 수종·DBH·수고를 입력하고 XY 획득을 누르면 여기에 임분이 표시됩니다.', W/2, H/2);
+    ctx.textAlign='left';
+  }
+}
 
 // ─── 재적비교 행 ───
 let cmpSeq=0;
@@ -506,7 +734,7 @@ function exportCSV() {
   if(dataRows.length===0){showToast('⚠️ 입력된 수목 데이터가 없습니다');return;}
 
   const BOM='\uFEFF';
-  const hdr='표준지번호,조사일자,조사자,X좌표(위도),Y좌표(경도),경사도(°),표시목1_거리(m),표시목1_방위(°),표시목2_거리(m),표시목2_방위(°),표시목3_거리(m),표시목3_방위(°),수종,흉고직경(cm),수고(m),단재적(㎥)\n';
+  const hdr='표준지번호,조사일자,조사자,X좌표(위도),Y좌표(경도),경사도(°),표시목1_거리(m),표시목1_방위(°),표시목2_거리(m),표시목2_방위(°),표시목3_거리(m),표시목3_방위(°),수종,흉고직경(cm),수고(m),단재적(㎥),3D_X(m),3D_Y(m),GPS정확도(m),표준지밖여부\n';
 
   let body='';
   dataRows.forEach((tr,idx)=>{
@@ -514,7 +742,10 @@ function exportCSV() {
     const sp=sels[0].value; const dbh=sels[1].value; const ht=sels[2].value;
     const vol=getVolume(sp,dbh,ht);
     const meta=idx===0?[plotNo,date,surveyor,x,y,slope,m1d,m1a,m2d,m2a,m3d,m3a]:['','','','','','','','','','','',''];
-    body+=[...meta,sp,dbh,ht,vol?vol.toFixed(6):''].join(',')+'\n';
+    
+    const tx=tr.dataset.x||''; const ty=tr.dataset.y||''; const acc=tr.dataset.gpsAccuracy||'';
+    const outside=(tx!==''&&ty!==''&&Math.sqrt(parseFloat(tx)*parseFloat(tx)+parseFloat(ty)*parseFloat(ty))>PLOT_RADIUS_M)?'Y':'';
+    body+=[...meta,sp,dbh,ht,vol?vol.toFixed(6):'',tx,ty,acc,outside].join(',')+'\n';
   });
 
   const blob=new Blob([BOM+hdr+body],{type:'text/csv;charset=utf-8;'});
