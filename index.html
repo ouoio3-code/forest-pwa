@@ -249,12 +249,12 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
     <div class="tree-toolbar" style="border-top:none">
       <div class="tree-count" id="cmp-count">0행 입력됨</div>
       <div class="toolbar-actions">
-        <input type="file" id="cmp-csv-input" accept=".csv,text/csv,text/plain" hidden onchange="importCmpCSV(event)">
+        <input type="file" id="cmp-csv-input" hidden onchange="importCmpCSV(event)">
         <button class="import-btn" onclick="openCmpCSVPicker()">📂 CSV 불러오기</button>
         <button class="add-btn" onclick="addCmpRow()">+ 행 추가</button>
       </div>
     </div>
-    <div class="import-status" id="cmp-import-status">산림야장에서 저장한 CSV 또는 ‘수종, 흉고직경, 수고’ 형식의 CSV를 불러올 수 있습니다.</div>
+    <div class="import-status" id="cmp-import-status">파일 선택창에는 모든 파일이 표시되며, .csv 파일만 불러옵니다.</div>
     <div class="cmp-table-wrap">
       <table class="cmp-table">
         <thead>
@@ -736,6 +736,11 @@ async function importCmpCSV(event) {
   const file=event.target.files && event.target.files[0];
   if(!file) return;
   const status=document.getElementById('cmp-import-status');
+  if(!/\.csv$/i.test(file.name)){
+    status.textContent='❌ 확장자가 .csv인 파일을 선택해 주세요.';
+    showToast('⚠️ CSV 파일을 선택해 주세요');
+    return;
+  }
   if(file.size>10*1024*1024){
     status.textContent='❌ 10MB 이하의 CSV 파일을 선택해 주세요.';
     showToast('⚠️ CSV 파일이 너무 큽니다');
