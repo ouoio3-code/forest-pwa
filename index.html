@@ -74,6 +74,10 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
 .del-c{width:28px}
 .del-btn{width:26px;height:26px;border:none;background:none;color:#ccc;font-size:15px;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center}
 .del-btn:active{background:#fee;color:var(--rd)}
+.copy-action-row td{padding:5px 8px;background:#f1f8f3;border-bottom:1px solid #c8e0d0}
+.copy-tree-btn{width:100%;min-height:36px;border:1px dashed var(--gm);border-radius:8px;background:var(--wh);color:var(--gd);font-size:12px;font-weight:700;cursor:pointer}
+.copy-tree-btn:active{background:var(--gl)}
+.copy-tree-btn span{font-weight:500;color:var(--ts);margin-left:5px}
 
 
 /* 2D 임분 구현 */
@@ -208,7 +212,7 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
   <div class="card">
     <div class="tree-toolbar">
       <div class="tree-count" id="tree-count">0 / 0 행 입력됨</div>
-      <button class="add-btn" onclick="addRow()">+ 행 추가</button>
+      <button class="add-btn" onclick="focusNewTreeInput()">신규 입력</button>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -383,37 +387,117 @@ function getGPS() {
 
 // ─── 수목조사 행 ───
 let rowSeq=0;
-function addRow() {
+let treeFlowUpdating=false;
+
+function addRow(values={}, options={}) {
   rowSeq++;
   const id=rowSeq;
   const tr=document.createElement('tr');
   tr.id='tr-'+id;
+  tr.className='tree-data-row';
   tr.dataset.treeId = id;
   tr.innerHTML=`
     <td class="no-c">${id}</td>
-    <td><select onchange="updateCount(); renderForest3D();">${spOptions()}</select></td>
-    <td><select onchange="updateCount(); renderForest3D();">${dbhOptions()}</select></td>
-    <td><select onchange="updateCount(); renderForest3D();">${htOptions()}</select></td>
+    <td><select onchange="handleTreeRowChange()">${spOptions(values.sp||'')}</select></td>
+    <td><select onchange="handleTreeRowChange()">${dbhOptions()}</select></td>
+    <td><select onchange="handleTreeRowChange()">${htOptions()}</select></td>
     <td><button class="xy-btn" id="xy-btn-${id}" onclick="acquireTreeXY(${id})">XY 획득</button></td>
     <td class="xy-val" id="xy-x-${id}" style="font-size:11px;color:#888;">-</td>
     <td class="xy-val" id="xy-y-${id}" style="font-size:11px;color:#888;">-</td>
     <td class="del-c"><button class="del-btn" onclick="delRow(${id})">✕</button></td>`;
   document.getElementById('tree-body').appendChild(tr);
+  const sels=tr.querySelectorAll('select');
+  if(values.dbh) sels[1].value=String(values.dbh);
+  if(values.ht) sels[2].value=String(values.ht);
   updateCount();
-  tr.querySelector('select').focus();
+  if(options.focus!==false) tr.querySelector('select').focus();
+  return tr;
 }
+
 function delRow(id) {
   const el=document.getElementById('tr-'+id);
   if(el) el.remove();
-  updateCount();
+  refreshTreeEntryFlow();
   renderForest3D();
 }
+
+function handleTreeRowChange() {
+  refreshTreeEntryFlow();
+  renderForest3D();
+}
+
+function treeRowHasAnyValue(tr) {
+  const sels=tr.querySelectorAll('select');
+  return [...sels].some(s=>s.value!=='') || tr.dataset.lat || tr.dataset.lon || tr.dataset.x || tr.dataset.y;
+}
+
+function refreshTreeEntryFlow() {
+  if(treeFlowUpdating) return;
+  treeFlowUpdating=true;
+  const body=document.getElementById('tree-body');
+  body.querySelectorAll('.copy-action-row').forEach(row=>row.remove());
+
+  let rows=[...body.querySelectorAll('.tree-data-row')];
+  while(rows.length>1 && !treeRowHasAnyValue(rows[rows.length-1]) && !treeRowHasAnyValue(rows[rows.length-2])){
+    rows[rows.length-1].remove();
+    rows.pop();
+  }
+  if(rows.length===0) rows=[addRow({}, {focus:false})];
+
+  let last=rows[rows.length-1];
+  let source=last;
+  let target=null;
+  if(!treeRowHasAnyValue(last)){
+    target=last;
+    source=rows.length>1 ? rows[rows.length-2] : null;
+  } else if(last.querySelectorAll('select')[0].value){
+    target=addRow({}, {focus:false});
+  }
+
+  if(source && target && source.querySelectorAll('select')[0].value){
+    const sourceSels=source.querySelectorAll('select');
+    const sourceId=source.dataset.treeId;
+    const action=document.createElement('tr');
+    action.className='copy-action-row';
+    const summary=[sourceSels[0].value,sourceSels[1].value?sourceSels[1].value+'cm':'직경 미입력',sourceSels[2].value?sourceSels[2].value+'m':'수고 미입력'].join(' · ');
+    action.innerHTML=`<td colspan="8"><button class="copy-tree-btn" onclick="copyTreeRow(${sourceId},${target.dataset.treeId})">⤵ 바로 위 수목 복사 <span>${summary}</span></button></td>`;
+    body.insertBefore(action,target);
+  }
+
+  [...body.querySelectorAll('.tree-data-row')].forEach((row,index)=>{
+    row.querySelector('.no-c').textContent=index+1;
+  });
+  updateCount();
+  treeFlowUpdating=false;
+}
+
+function copyTreeRow(sourceId, targetId) {
+  const source=document.getElementById('tr-'+sourceId);
+  const target=document.getElementById('tr-'+targetId);
+  if(!source || !target) return;
+  const from=source.querySelectorAll('select');
+  const to=target.querySelectorAll('select');
+  to[0].value=from[0].value;
+  to[1].value=from[1].value;
+  to[2].value=from[2].value;
+  refreshTreeEntryFlow();
+  renderForest3D();
+  showToast('✅ 위 수목 정보를 복사했습니다');
+}
+
+function focusNewTreeInput() {
+  refreshTreeEntryFlow();
+  const rows=[...document.querySelectorAll('#tree-body .tree-data-row')];
+  const last=rows[rows.length-1];
+  if(last) last.querySelector('select').focus();
+}
+
 function updateCount() {
-  const rows=[...document.querySelectorAll('#tree-body tr')];
+  const rows=[...document.querySelectorAll('#tree-body .tree-data-row')];
   const filled=rows.filter(r=>r.querySelectorAll('select')[0].value!=='').length;
   document.getElementById('tree-count').textContent=filled+' / '+rows.length+' 행 입력됨';
 }
-for(let i=0;i<10;i++) addRow();
+addRow({}, {focus:false});
 
 
 // ─── 2D 임분 구현: GPS 기반 XY 자동 획득 + 내장 캔버스 시각화 ───
@@ -810,6 +894,7 @@ function collectTreeData(bodyId) {
   const data = [];
   rows.forEach(tr => {
     const sels = tr.querySelectorAll('select');
+    if(sels.length<3) return;
     const sp  = sels[0].value;
     const dbh = sels[1].value;
     const ht  = sels[2].value;
@@ -903,6 +988,7 @@ function exportCSV() {
   const rows=[...document.querySelectorAll('#tree-body tr')];
   const dataRows=rows.filter(r=>{
     const sels=r.querySelectorAll('select');
+    if(sels.length<3) return false;
     return sels[0].value||sels[1].value||sels[2].value;
   });
   if(dataRows.length===0){showToast('⚠️ 입력된 수목 데이터가 없습니다');return;}
