@@ -1,4 +1,4 @@
-const CACHE = 'forest-pwa-v5-2d-latlon';
+const CACHE = 'forest-pwa-v6-csv-import';
 const FILES = ['./', './index.html', './manifest.json', './vol_table.js', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {

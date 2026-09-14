@@ -59,6 +59,10 @@ header .sub{font-size:11px;opacity:.75;margin-top:2px}
 .tree-count{font-size:12px;color:var(--ts)}
 .add-btn{height:32px;padding:0 14px;background:var(--gd);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer}
 .add-btn:active{background:var(--gm)}
+.toolbar-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.import-btn{height:32px;padding:0 12px;background:var(--wh);color:var(--gd);border:1px solid var(--gm);border-radius:7px;font-size:13px;font-weight:600;cursor:pointer}
+.import-btn:active{background:var(--gl)}
+.import-status{padding:8px 14px;background:#fafafa;border-bottom:1px solid var(--bd);font-size:11px;color:var(--ts);line-height:1.5}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;min-width:320px}
 thead th{background:var(--gl);color:var(--gd);font-size:12px;font-weight:600;padding:9px 4px;text-align:center;white-space:nowrap;border-bottom:1px solid #c8e0d0}
@@ -234,17 +238,23 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
 <div class="page" id="page3">
   <div class="info-box">
     ℹ️ <strong>재적비교 사용법</strong><br>
-    ① 아래에 <strong>기존 조사자의 데이터</strong>를 입력하세요.<br>
+    ① 아래에 <strong>기존 조사자의 데이터</strong>를 입력하거나 CSV 파일을 불러오세요.<br>
     ② 현재 야장(수목조사 탭) 데이터와 재적을 자동으로 비교합니다.<br>
-    ③ 재적표는 입목수간재적표(2023.12) 기준이 적용됩니다.
+    ③ CSV에는 <strong>수종, 흉고직경, 수고</strong> 열이 필요합니다.<br>
+    ④ 재적표는 입목수간재적표(2023.12) 기준이 적용됩니다.
   </div>
 
   <div class="card">
     <div class="ch">📥 기존 조사자 데이터 입력</div>
     <div class="tree-toolbar" style="border-top:none">
       <div class="tree-count" id="cmp-count">0행 입력됨</div>
-      <button class="add-btn" onclick="addCmpRow()">+ 행 추가</button>
+      <div class="toolbar-actions">
+        <input type="file" id="cmp-csv-input" accept=".csv,text/csv,text/plain" hidden onchange="importCmpCSV(event)">
+        <button class="import-btn" onclick="openCmpCSVPicker()">📂 CSV 불러오기</button>
+        <button class="add-btn" onclick="addCmpRow()">+ 행 추가</button>
+      </div>
     </div>
+    <div class="import-status" id="cmp-import-status">산림야장에서 저장한 CSV 또는 ‘수종, 흉고직경, 수고’ 형식의 CSV를 불러올 수 있습니다.</div>
     <div class="cmp-table-wrap">
       <table class="cmp-table">
         <thead>
@@ -590,20 +600,35 @@ function renderForest3D(){
 
 // ─── 재적비교 행 ───
 let cmpSeq=0;
-function addCmpRow() {
+function addCmpRow(values={}) {
   cmpSeq++;
   const id=cmpSeq;
   const tr=document.createElement('tr');
   tr.id='ctr-'+id;
   tr.innerHTML=`
     <td class="no-c">${id}</td>
-    <td><select onchange="updateCmpCount()">${spOptions()}</select></td>
+    <td><select onchange="updateCmpCount()">${spOptions(values.sp||'')}</select></td>
     <td><select onchange="updateCmpCount()">${dbhOptions()}</select></td>
     <td><select onchange="updateCmpCount()">${htOptions()}</select></td>
     <td class="del-c"><button class="del-btn" onclick="delCmpRow(${id})">✕</button></td>`;
   document.getElementById('cmp-body').appendChild(tr);
+  const sels=tr.querySelectorAll('select');
+  if(values.dbh!==undefined && values.dbh!=='') setSelectValue(sels[1], values.dbh);
+  if(values.ht!==undefined && values.ht!=='') setSelectValue(sels[2], values.ht);
   updateCmpCount();
 }
+
+function setSelectValue(select, value) {
+  const v=String(value);
+  if(![...select.options].some(o=>o.value===v)){
+    const option=document.createElement('option');
+    option.value=v;
+    option.textContent=v;
+    select.appendChild(option);
+  }
+  select.value=v;
+}
+
 function delCmpRow(id) {
   const el=document.getElementById('ctr-'+id);
   if(el) el.remove();
@@ -614,6 +639,148 @@ function updateCmpCount() {
   const filled=rows.filter(r=>r.querySelectorAll('select')[0].value!=='').length;
   document.getElementById('cmp-count').textContent=filled+' / '+rows.length+'행 입력됨';
 }
+
+// ─── 재적비교 CSV 불러오기 ───
+function openCmpCSVPicker() {
+  const input=document.getElementById('cmp-csv-input');
+  input.value='';
+  input.click();
+}
+
+function decodeCSVBuffer(buffer) {
+  const bytes=new Uint8Array(buffer);
+  if(bytes[0]===0xFF && bytes[1]===0xFE) return new TextDecoder('utf-16le').decode(bytes);
+  if(bytes[0]===0xFE && bytes[1]===0xFF) return new TextDecoder('utf-16be').decode(bytes);
+  try {
+    return new TextDecoder('utf-8',{fatal:true}).decode(bytes);
+  } catch(e) {
+    try { return new TextDecoder('euc-kr').decode(bytes); }
+    catch(e2) { return new TextDecoder('utf-8').decode(bytes); }
+  }
+}
+
+function detectDelimiter(text) {
+  const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(line=>line.trim()).slice(0,5);
+  const candidates=[',','\t',';'];
+  let best=',', bestScore=-1;
+  candidates.forEach(delimiter=>{
+    let score=0;
+    lines.forEach(line=>{
+      let quoted=false;
+      for(let i=0;i<line.length;i++){
+        if(line[i]==='"'){
+          if(quoted && line[i+1]==='"') i++;
+          else quoted=!quoted;
+        } else if(line[i]===delimiter && !quoted) score++;
+      }
+    });
+    if(score>bestScore){ best=delimiter; bestScore=score; }
+  });
+  return best;
+}
+
+function parseCSV(text) {
+  text=text.replace(/^\uFEFF/,'');
+  const delimiter=detectDelimiter(text);
+  const rows=[];
+  let row=[], field='', quoted=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(quoted){
+      if(ch==='"' && text[i+1]==='"'){ field+='"'; i++; }
+      else if(ch==='"') quoted=false;
+      else field+=ch;
+    } else if(ch==='"') quoted=true;
+    else if(ch===delimiter){ row.push(field.trim()); field=''; }
+    else if(ch==='\n' || ch==='\r'){
+      if(ch==='\r' && text[i+1]==='\n') i++;
+      row.push(field.trim()); field='';
+      if(row.some(v=>v!=='')) rows.push(row);
+      row=[];
+    } else field+=ch;
+  }
+  row.push(field.trim());
+  if(row.some(v=>v!=='')) rows.push(row);
+  return rows;
+}
+
+function normalizeHeader(value) {
+  return String(value||'').replace(/^\uFEFF/,'').toLowerCase().replace(/[\s_()（）\[\]{}·.\/\\-]/g,'');
+}
+
+function findCSVColumns(rows) {
+  for(let r=0;r<Math.min(rows.length,10);r++){
+    const headers=rows[r].map(normalizeHeader);
+    const sp=headers.findIndex(h=>h==='수종' || h.includes('수종명') || h==='species' || h==='treespecies');
+    const dbh=headers.findIndex(h=>h.includes('흉고직경') || h==='dbh' || h==='diameter' || h==='직경cm');
+    const ht=headers.findIndex(h=>h==='수고' || h.startsWith('수고m') || h==='height' || h==='treeheight');
+    if(sp>=0 && dbh>=0 && ht>=0) return {headerRow:r,startRow:r+1,sp,dbh,ht};
+  }
+  const first=rows[0]||[];
+  if(first.length>=3 && matchSpecies(first[0])) return {headerRow:-1,startRow:0,sp:0,dbh:1,ht:2};
+  return null;
+}
+
+function matchSpecies(value) {
+  const key=String(value||'').trim().replace(/\s+/g,'');
+  return SPECIES.find(sp=>sp.replace(/\s+/g,'')===key) || '';
+}
+
+function parseWholeNumber(value, min, max) {
+  const cleaned=String(value||'').trim().replace(/,/g,'').replace(/[^0-9.+-]/g,'');
+  const num=Number(cleaned);
+  return Number.isFinite(num) && Number.isInteger(num) && num>=min && num<=max ? num : null;
+}
+
+async function importCmpCSV(event) {
+  const file=event.target.files && event.target.files[0];
+  if(!file) return;
+  const status=document.getElementById('cmp-import-status');
+  if(file.size>10*1024*1024){
+    status.textContent='❌ 10MB 이하의 CSV 파일을 선택해 주세요.';
+    showToast('⚠️ CSV 파일이 너무 큽니다');
+    return;
+  }
+  status.textContent='⏳ '+file.name+' 읽는 중...';
+  try {
+    const text=decodeCSVBuffer(await file.arrayBuffer());
+    const rows=parseCSV(text);
+    const columns=findCSVColumns(rows);
+    if(!columns) throw new Error('수종, 흉고직경, 수고 열을 찾지 못했습니다.');
+
+    const imported=[];
+    let skipped=0;
+    rows.slice(columns.startRow).forEach(row=>{
+      if(!row.some(v=>String(v||'').trim())) return;
+      const sp=matchSpecies(row[columns.sp]);
+      const dbh=parseWholeNumber(row[columns.dbh],1,80);
+      const ht=parseWholeNumber(row[columns.ht],1,40);
+      if(sp && dbh!==null && ht!==null) imported.push({sp,dbh,ht});
+      else skipped++;
+    });
+    if(imported.length===0) throw new Error('불러올 수 있는 유효한 데이터 행이 없습니다.');
+
+    const hasExisting=[...document.querySelectorAll('#cmp-body tr')].some(tr=>{
+      const sels=tr.querySelectorAll('select');
+      return sels[0].value || sels[1].value || sels[2].value;
+    });
+    if(hasExisting && !confirm('현재 재적비교 데이터를 CSV 내용으로 교체할까요?')){
+      status.textContent='CSV 불러오기가 취소되었습니다.';
+      return;
+    }
+
+    document.getElementById('cmp-body').innerHTML='';
+    cmpSeq=0;
+    imported.forEach(item=>addCmpRow(item));
+    document.getElementById('result-box').style.display='none';
+    status.textContent='✅ '+file.name+' — '+imported.length+'행을 불러왔습니다.'+(skipped?' (형식이 맞지 않는 '+skipped+'행 제외)':'');
+    showToast('✅ CSV '+imported.length+'행 불러오기 완료');
+  } catch(error) {
+    status.textContent='❌ '+error.message;
+    showToast('⚠️ CSV 불러오기에 실패했습니다');
+  }
+}
+
 for(let i=0;i<10;i++) addCmpRow();
 initForest3D();
 
