@@ -55,7 +55,7 @@ header .sub{font-size:11px;opacity:.75;margin-top:2px}
 .mark-num::before{content:attr(data-n);width:20px;height:20px;background:var(--gd);color:#fff;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center}
 
 /* 수목조사 테이블 */
-.tree-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--bd)}
+.tree-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--bd)}
 .tree-count{font-size:12px;color:var(--ts)}
 .add-btn{height:32px;padding:0 14px;background:var(--gd);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer}
 .add-btn:active{background:var(--gm)}
@@ -212,7 +212,10 @@ tbody td select:focus,tbody td input[type=number]:focus{outline:none;border-colo
   <div class="card">
     <div class="tree-toolbar">
       <div class="tree-count" id="tree-count">0 / 0 행 입력됨</div>
-      <button class="add-btn" onclick="focusNewTreeInput()">신규 입력</button>
+      <div class="toolbar-actions">
+        <button class="import-btn" onclick="copyCmpDataToTree()">📋 재적비교값 복사</button>
+        <button class="add-btn" onclick="focusNewTreeInput()">신규 입력</button>
+      </div>
     </div>
     <div class="tbl-wrap">
       <table>
@@ -407,8 +410,8 @@ function addRow(values={}, options={}) {
     <td class="del-c"><button class="del-btn" onclick="delRow(${id})">✕</button></td>`;
   document.getElementById('tree-body').appendChild(tr);
   const sels=tr.querySelectorAll('select');
-  if(values.dbh) sels[1].value=String(values.dbh);
-  if(values.ht) sels[2].value=String(values.ht);
+  if(values.dbh!==undefined && values.dbh!=='') setSelectValue(sels[1],values.dbh);
+  if(values.ht!==undefined && values.ht!=='') setSelectValue(sels[2],values.ht);
   updateCount();
   if(options.focus!==false) tr.querySelector('select').focus();
   return tr;
@@ -490,6 +493,32 @@ function focusNewTreeInput() {
   const rows=[...document.querySelectorAll('#tree-body .tree-data-row')];
   const last=rows[rows.length-1];
   if(last) last.querySelector('select').focus();
+}
+
+function copyCmpDataToTree() {
+  const cmpData=[...document.querySelectorAll('#cmp-body tr')].map(tr=>{
+    const sels=tr.querySelectorAll('select');
+    if(sels.length<3) return null;
+    const item={sp:sels[0].value,dbh:sels[1].value,ht:sels[2].value};
+    return item.sp || item.dbh || item.ht ? item : null;
+  }).filter(Boolean);
+
+  if(cmpData.length===0){
+    showToast('⚠️ 재적비교 탭에 입력된 데이터가 없습니다');
+    return;
+  }
+
+  const hasTreeData=[...document.querySelectorAll('#tree-body .tree-data-row')].some(treeRowHasAnyValue);
+  if(hasTreeData && !confirm('현재 수목조사 데이터를 재적비교 입력값으로 교체할까요?')) return;
+
+  const body=document.getElementById('tree-body');
+  body.innerHTML='';
+  rowSeq=0;
+  treeFlowUpdating=false;
+  cmpData.forEach(item=>addRow(item,{focus:false}));
+  refreshTreeEntryFlow();
+  renderForest3D();
+  showToast('✅ 재적비교 데이터 '+cmpData.length+'행을 복사했습니다');
 }
 
 function updateCount() {

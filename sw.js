@@ -1,4 +1,4 @@
-const CACHE = 'forest-pwa-v8-tree-copy';
+const CACHE = 'forest-pwa-v9-compare-to-survey';
 const FILES = ['./', './index.html', './manifest.json', './vol_table.js', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
